@@ -53,8 +53,10 @@
             detail: document.getElementById('detail').value
         };
 
-        // ฟิกเป้าหมายให้ยิงข้ามอินเทอร์เน็ตมาที่ IP สาธารณะของเร้าเตอร์ฝั่ง NAS
-        fetch('http://223.27.212.187/weekly-report/api.php', {
+        // 🌟 อัปเดตเป้าหมายชี้ไปที่ IP สาธารณะตัวจริงของคุณทศพลเรียบร้อยแล้วครับ 🌟
+        const targetUrl = 'http://223.27.212.187/weekly-report/api.php';
+
+        fetch(targetUrl, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json'
@@ -70,12 +72,13 @@
                 alert('🎉 สำเร็จ! บันทึกข้อมูลส่งรายงานเข้าฐานข้อมูลเครื่อง NAS เรียบร้อยแล้ว');
                 document.getElementById('reportForm').reset();
             } else {
-                alert('❌ เกิดข้อผิดพลาดจากระบบ NAS: ' + data.message);
+                alert('❌ เกิดข้อผิดพลาดจากระบบหลังบ้าน: ' + data.message);
             }
         })
         .catch(err => {
             console.error(err);
-            alert('❌ ไม่สามารถเชื่อมต่อฐานข้อมูลเครื่อง NAS ได้\nกรุณาตรวจสอบว่าเปิดพอร์ตที่เร้าเตอร์หลักเรียบร้อยแล้วหรือยัง');
+            // ข้อความแจ้งเตือนที่ระบุตำแหน่ง IP ล่าสุดให้ชัดเจน เพื่อใช้ในการตรวจสอบเชิงเทคนิค
+            alert('❌ ไม่สามารถเชื่อมต่อฐานข้อมูลเครื่อง NAS ได้\n\n[ข้อมูลการตรวจสอบ]\n1. ปลายทางปัจจุบัน: ' + targetUrl + '\n2. กรุณาตรวจสอบว่าได้ตั้งค่า Port Forwarding ที่เร้าเตอร์แล้วหรือยัง\n3. หากเบราว์เซอร์บล็อกความปลอดภัย ให้กดปุ่มแม่กุญแจหน้า URL แล้วเลือก "อนุญาตเนื้อหาที่ไม่ปลอดภัย" (Allow Insecure Content)');
         })
         .finally(() => {
             submitBtn.disabled = false;
