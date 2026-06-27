@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบส่งรายงานการทำงานพนักงาน (ทุกสาขา)</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .btn-submit { background-color: #198754; border: none; font-weight: bold; }
+        .btn-submit:hover { background-color: #146c43; }
+    </style>
+</head>
+<body class="py-5">
+<div class="container" style="max-width: 600px;">
+    <div class="card p-4 bg-white">
+        <h3 class="fw-bold mb-4 text-success text-center">📥 ระบบส่งรายงานการทำงาน (รวมทุกสำนักงาน)</h3>
+        <p class="text-center text-muted small">ระบบเชื่อมต่อไปยัง QNAP NAS (IP: 223.27.212.187)</p>
+        <form id="reportForm">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">ชื่อ-นามสกุล</label>
+                <input type="text" class="form-control" id="staff_name" placeholder="กรอกชื่อ-นามสกุลพนักงาน" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">วันที่</label>
+                <input type="date" class="form-control" id="report_date" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">หัวข้อรายงาน</label>
+                <input type="text" class="form-control" id="title" placeholder="ระบุหัวข้อรายงาน" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">รายละเอียดงาน</label>
+                <textarea class="form-control" id="detail" rows="6" placeholder="ระบุรายละเอียดงานที่ทำ..." required></textarea>
+            </div>
+            <button type="submit" id="submitBtn" class="btn btn-success w-100 btn-submit py-2.5 mt-2">ส่งข้อมูลเข้าฐานข้อมูล NAS</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.getElementById('reportForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'กำลังส่งข้อมูล...';
+        
+        const payload = {
+            staff_name: document.getElementById('staff_name').value,
+            report_date: document.getElementById('report_date').value,
+            title: document.getElementById('title').value,
+            detail: document.getElementById('detail').value
+        };
+
+        // มุ่งเป้าไปที่ IP สาธารณะตัวใหม่โดยตรง ไม่ใช้ไอพีเดิมแล้ว
+        const targetUrl = 'http://223.27.212.187/weekly-report/api.php';
+
+        fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('HTTP status ' + res.status);
+            return res.json();
+        })
+        .then(data => {
+            if(data.status === 'success') {
+                alert('🎉 สำเร็จ! บันทึกข้อมูลส่งรายงานเข้าฐานข้อมูลเครื่อง NAS เรียบร้อยแล้ว');
+                document.getElementById('reportForm').reset();
+            } else {
+                alert('❌ ปัญหาจากฝั่ง NAS: ' + data.message);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('❌ ไม่สามารถเชื่อมต่อฐานข้อมูลเครื่อง NAS ได้\n\n[ตรวจสอบพิกัดปลายทางที่ยิงไปตอนนี้]\n🔗 URL: ' + targetUrl + '\n\n💡 วิธีแก้: ถ้าข้อความด้านบนเป็น 223.27.212.187 แล้ว แปลว่าโค้ดใหม่ทำงานแล้ว ให้ไปตรวจสอบการทำ Port Forwarding ที่เร้าเตอร์หลักเปิดพอร์ตเว็บ (พอร์ต 80) ชี้ไปที่ไอพีภายในของ NAS หรือยังครับ');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'ส่งข้อมูลเข้าฐานข้อมูล NAS';
+        });
+    });
+</script>
+</body>
+</html>
