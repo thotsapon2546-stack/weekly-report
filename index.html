@@ -3,17 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบส่งรายงานการทำงาน (GitHub -> QNAP)</title>
+    <title>ระบบส่งรายงานการทำงานพนักงาน (ทุกสาขา)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f4f6f9; }
-        .card { border-radius: 15px; }
+        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .btn-submit { background-color: #198754; border: none; font-weight: bold; }
+        .btn-submit:hover { background-color: #146c43; }
     </style>
 </head>
 <body class="py-5">
 <div class="container" style="max-width: 600px;">
-    <div class="card p-4 shadow-sm border-0">
-        <h3 class="fw-bold mb-4 text-success text-center">📥 ส่งรายงานการทำงาน (GitHub -> QNAP)</h3>
+    <div class="card p-4 bg-white">
+        <h3 class="fw-bold mb-4 text-success text-center">📥 ระบบส่งรายงานการทำงาน (รวมทุกสำนักงาน)</h3>
         <form id="reportForm">
             <div class="mb-3">
                 <label class="form-label fw-semibold">ชื่อ-นามสกุล</label>
@@ -25,13 +27,13 @@
             </div>
             <div class="mb-3">
                 <label class="form-label fw-semibold">หัวข้อรายงาน</label>
-                <input type="text" class="form-control" id="title" placeholder="เช่น รายงานความคืบหน้าโปรเจกต์ประจำสัปดาห์" required>
+                <input type="text" class="form-control" id="title" placeholder="ระบุหัวข้อรายงาน" required>
             </div>
             <div class="mb-3">
                 <label class="form-label fw-semibold">รายละเอียดงาน</label>
-                <textarea class="form-control" id="detail" rows="5" placeholder="ระบุรายละเอียดงานที่ทำ..." required></textarea>
+                <textarea class="form-control" id="detail" rows="6" placeholder="ระบุรายละเอียดงานที่ทำ..." required></textarea>
             </div>
-            <button type="submit" id="submitBtn" class="btn btn-success w-100 fw-bold py-2 mt-2">ส่งข้อมูลเข้าฐานข้อมูล NAS</button>
+            <button type="submit" id="submitBtn" class="btn btn-success w-100 btn-submit py-2.5 mt-2">ส่งข้อมูลเข้าฐานข้อมูล NAS</button>
         </form>
     </div>
 </div>
@@ -42,7 +44,7 @@
         
         const submitBtn = document.getElementById('submitBtn');
         submitBtn.disabled = true;
-        submitBtn.innerText = 'กำลังส่งข้อมูล...';
+        submitBtn.innerText = 'กำลังส่งข้อมูลข้ามสาขาไปยัง NAS...';
         
         const payload = {
             staff_name: document.getElementById('staff_name').value,
@@ -51,10 +53,8 @@
             detail: document.getElementById('detail').value
         };
 
-        // ตั้งค่าชี้เป้าเข้าหาพอร์ต HTTP ปกติของเครื่อง QNAP NAS ของคุณ
-        const targetUrl = 'http://20.1.34.195/weekly-report/api.php';
-
-        fetch(targetUrl, {
+        // ฟิกเป้าหมายให้ยิงข้ามอินเทอร์เน็ตมาที่ IP สาธารณะของเร้าเตอร์ฝั่ง NAS
+        fetch('http://223.27.212.187/weekly-report/api.php', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json'
@@ -62,22 +62,20 @@
             body: JSON.stringify(payload)
         })
         .then(res => {
-            if (!res.ok) {
-                throw new Error('Network response was not ok: ' + res.status);
-            }
+            if (!res.ok) throw new Error('HTTP error ' + res.status);
             return res.json();
         })
         .then(data => {
             if(data.status === 'success') {
-                alert('🎉 บันทึกข้อมูลเข้า phpMyAdmin เรียบร้อย!');
+                alert('🎉 สำเร็จ! บันทึกข้อมูลส่งรายงานเข้าฐานข้อมูลเครื่อง NAS เรียบร้อยแล้ว');
                 document.getElementById('reportForm').reset();
             } else {
-                alert('❌ เซิร์ฟเวอร์ตอบกลับข้อผิดพลาด: ' + data.message);
+                alert('❌ เกิดข้อผิดพลาดจากระบบ NAS: ' + data.message);
             }
         })
         .catch(err => {
-            console.error('Error detail:', err);
-            alert('❌ ไม่สามารถเชื่อมต่อฐานข้อมูลเครื่อง NAS ได้\nกรุณาตรวจสอบว่าหน้าริงก์เว็บ http://20.1.34.195/weekly-report/api.php ยังติด Error 500 อยู่หรือไม่');
+            console.error(err);
+            alert('❌ ไม่สามารถเชื่อมต่อฐานข้อมูลเครื่อง NAS ได้\nกรุณาตรวจสอบว่าเปิดพอร์ตที่เร้าเตอร์หลักเรียบร้อยแล้วหรือยัง');
         })
         .finally(() => {
             submitBtn.disabled = false;
