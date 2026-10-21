@@ -144,9 +144,13 @@ init();document.querySelectorAll('input').forEach(i=>i.addEventListener('input',
 
 const msg=t=>$('msg').textContent=t;
 async function save(filename,data){
-  let dl=null;try{dl=await claude.use('downloads');}catch(e){}
-  if(!dl){msg('ฟีเจอร์ดาวน์โหลดไม่พร้อมใช้งานในมุมมองนี้ ลองเปิดหน้านี้ใน claude.ai');return;}
-  try{await dl.save({filename,data});msg('บันทึกไฟล์แล้ว');}catch(e){msg(e&&e.code==='declined'?'ยกเลิกการบันทึก':'บันทึกไม่สำเร็จ ('+(e&&e.code||'error')+')');}
+  // ใช้ระบบดาวน์โหลดของ claude.ai ถ้ามี ไม่งั้นดาวน์โหลดตรงจากเบราว์เซอร์ (GitHub Pages ฯลฯ)
+  let dl=null;try{if(typeof claude!=='undefined'&&claude.use)dl=await claude.use('downloads');}catch(e){}
+  if(dl){try{await dl.save({filename,data});msg('บันทึกไฟล์แล้ว');}catch(e){msg(e&&e.code==='declined'?'ยกเลิกการบันทึก':'บันทึกไม่สำเร็จ ('+(e&&e.code||'error')+')');}return;}
+  try{const blob=data instanceof Blob?data:new Blob([data]);const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);msg('กำลังดาวน์โหลด '+filename);}
+  catch(e){msg('ดาวน์โหลดไม่สำเร็จ');}
 }
 const fname=()=>'ใบทะเบียนสมรสที่ระลึก';
 $('png').onclick=()=>{render();cv.toBlob(b=>save(fname()+'.png',b),'image/png');};
