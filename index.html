@@ -1,88 +1,157 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบส่งรายงานการทำงานพนักงาน (ทุกสาขา)</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background-color: #f4f6f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { border-radius: 15px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .btn-submit { background-color: #198754; border: none; font-weight: bold; }
-        .btn-submit:hover { background-color: #146c43; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ทำใบทะเบียนสมรสที่ระลึก</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&family=Mitr:wght@500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--bg:#faf6ee;--card:#fff;--ink:#2b2118;--mut:#7a6a58;--line:#e3d6bf;--acc:#9a6b1f;--accfg:#fff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1b1610;--card:#262017;--ink:#f1e8d8;--mut:#b5a58e;--line:#4a3d2a;--acc:#d9a441;--accfg:#1b1610}}
+:root[data-theme="dark"]{--bg:#1b1610;--card:#262017;--ink:#f1e8d8;--mut:#b5a58e;--line:#4a3d2a;--acc:#d9a441;--accfg:#1b1610}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Sarabun',system-ui,sans-serif;line-height:1.5}
+.wrap{max-width:1000px;margin:0 auto;padding:20px 16px 40px}
+h1{font-family:'Mitr','Sarabun',sans-serif;font-weight:500;font-size:1.6rem;margin:.2em 0}
+.note{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--acc);padding:10px 14px;border-radius:8px;color:var(--mut);font-size:.92rem;margin:12px 0 20px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+fieldset{border:0;margin:0 0 12px;padding:0}
+legend{font-weight:700;color:var(--acc);margin-bottom:6px}
+label{display:block;font-size:.88rem;color:var(--mut);margin:8px 0 2px}
+input{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{display:flex;gap:8px;align-items:center;color:var(--ink);margin:4px 0}input[type=radio]{width:auto}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+button{font:inherit;font-weight:600;padding:11px 16px;border-radius:10px;border:0;background:var(--acc);color:var(--accfg);cursor:pointer;flex:1;min-width:130px}
+button.alt{background:transparent;color:var(--acc);border:1.5px solid var(--acc)}
+canvas{width:100%;height:auto;border:1px solid var(--line);border-radius:6px;display:block;background:#fff}
+#msg{min-height:1.4em;margin-top:10px;font-size:.9rem;color:var(--mut)}
+</style>
 </head>
-<body class="py-5">
-<div class="container" style="max-width: 600px;">
-    <div class="card p-4 bg-white">
-        <h3 class="fw-bold mb-4 text-success text-center">📥 ระบบส่งรายงานการทำงาน (รวมทุกสำนักงาน)</h3>
-        <p class="text-center text-muted small">ระบบเชื่อมต่อไปยัง QNAP NAS (IP: 223.27.212.187)</p>
-        <form id="reportForm">
-            <div class="mb-3">
-                <label class="form-label fw-semibold">ชื่อ-นามสกุล</label>
-                <input type="text" class="form-control" id="staff_name" placeholder="กรอกชื่อ-นามสกุลพนักงาน" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">วันที่</label>
-                <input type="date" class="form-control" id="report_date" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">หัวข้อรายงาน</label>
-                <input type="text" class="form-control" id="title" placeholder="ระบุหัวข้อรายงาน" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">รายละเอียดงาน</label>
-                <textarea class="form-control" id="detail" rows="6" placeholder="ระบุรายละเอียดงานที่ทำ..." required></textarea>
-            </div>
-            <button type="submit" id="submitBtn" class="btn btn-success w-100 btn-submit py-2.5 mt-2">ส่งข้อมูลเข้าฐานข้อมูล NAS</button>
-        </form>
-    </div>
+<body>
+<div class="wrap">
+<h1>ใบทะเบียนสมรสที่ระลึก</h1>
+<div class="note">เอกสารนี้เป็นของที่ระลึกสำหรับเก็บความทรงจำ กรอบรูป หรือแต่งงานจำลอง <b>ไม่ใช่เอกสารราชการ และไม่มีผลทางกฎหมาย</b> การจดทะเบียนสมรสจริงต้องทำที่สำนักงานเขต/อำเภอ หรือผ่านระบบของกรมการปกครอง</div>
+<div class="grid">
+<div class="card">
+<fieldset><legend>ฝ่ายชาย</legend>
+<label>ชื่อ-นามสกุล</label><input id="gName" value="นายสมชาย ใจดี">
+<label>อายุ (ปี)</label><input id="gAge" type="number" value="28">
+</fieldset>
+<fieldset><legend>ฝ่ายหญิง</legend>
+<label>ชื่อ-นามสกุล</label><input id="bName" value="นางสาวสมหญิง รักดี">
+<label>อายุ (ปี)</label><input id="bAge" type="number" value="26">
+</fieldset>
+<fieldset><legend>รายละเอียดการสมรส</legend>
+<label>วันที่สมรส</label><input id="date" type="date">
+<label>สถานที่ (เขต/อำเภอ จังหวัด)</label><input id="place" value="เขตบางรัก กรุงเทพมหานคร">
+<label>เลขที่ที่ระลึก</label><input id="no" value="001/2569">
+</fieldset>
+<fieldset><legend>พยาน (ไม่บังคับ)</legend>
+<div class="row"><div><label>พยานคนที่ 1</label><input id="w1"></div><div><label>พยานคนที่ 2</label><input id="w2"></div></div>
+</fieldset>
+<fieldset><legend>รูปแบบใบ</legend><label class="opt"><input type="radio" name="mode" value="1" checked>ใบเดียว (ชื่อทั้งคู่)</label><label class="opt"><input type="radio" name="mode" value="2">แบบสมุด 2 ฝ่ายคู่กันในแผ่นเดียว (ฉบับฝ่ายชาย / ฝ่ายหญิง)</label></fieldset>
+<div class="btns"><button id="pdf">ดาวน์โหลด PDF</button><button id="png" class="alt">ดาวน์โหลดรูป PNG</button></div>
+<div id="msg"></div>
 </div>
-
+<div class="card"><canvas id="cv" width="1240" height="1754"></canvas></div>
+</div>
+</div>
 <script>
-    document.getElementById('reportForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const submitBtn = document.getElementById('submitBtn');
-        submitBtn.disabled = true;
-        submitBtn.innerText = 'กำลังส่งข้อมูล...';
-        
-        const payload = {
-            staff_name: document.getElementById('staff_name').value,
-            report_date: document.getElementById('report_date').value,
-            title: document.getElementById('title').value,
-            detail: document.getElementById('detail').value
-        };
+const $=id=>document.getElementById(id), cv=$('cv'); let ctx=cv.getContext('2d');
+const MONTHS=['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+const TD=n=>String(n).replace(/\d/g,d=>'๐๑๒๓๔๕๖๗๘๙'[d]);
+const NAVY='#2a2f7a',GOLD='#9a6b1f',INK='#2b2118',MUT='#6b5a45',CX=620,SANS='Sarabun,sans-serif';
+$('date').value=new Date().toISOString().slice(0,10);
+const DOTS='...............................';
 
-        // มุ่งเป้าไปที่ IP สาธารณะตัวใหม่โดยตรง ไม่ใช้ไอพีเดิมแล้ว
-        const targetUrl = 'http://223.27.212.187/weekly-report/api.php';
+function thaiDate(v){ if(!v) return DOTS; const [y,m,d]=v.split('-').map(Number); return TD(d)+' '+MONTHS[m-1]+' พ.ศ. '+TD(y+543); }
+function diamond(x,y,r,fill){ctx.beginPath();ctx.moveTo(x,y-r);ctx.lineTo(x+r,y);ctx.lineTo(x,y+r);ctx.lineTo(x-r,y);ctx.closePath();fill?ctx.fill():ctx.stroke();}
+// centered text, auto-shrinks to maxW
+function T(t,y,font,color,maxW){ctx.textAlign='center';ctx.fillStyle=color;let f=font;ctx.font=f;
+  if(maxW){let s=+f.match(/(\d+)px/)[1];while(ctx.measureText(t).width>maxW&&s>20){s-=2;f=font.replace(/\d+px/,s+'px');ctx.font=f;}}
+  ctx.fillText(t,CX,y);}
+// centered divider with diamonds
+function orn(y,w){ctx.strokeStyle=GOLD;ctx.fillStyle=GOLD;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(CX-w,y);ctx.lineTo(CX-38,y);ctx.moveTo(CX+38,y);ctx.lineTo(CX+w,y);ctx.stroke();
+  diamond(CX,y,10,true);diamond(CX-24,y,5,true);diamond(CX+24,y,5,true);}
+// centered underline
+function ul(y,w){ctx.strokeStyle='#c9b78f';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(CX-w/2,y);ctx.lineTo(CX+w/2,y);ctx.stroke();}
+// label (small, gold) + value (large) + underline, all centered
+function field(label,val,y,size){T(label,y,'600 30px '+SANS,GOLD);T(val,y+62,'600 '+(size||48)+'px '+SANS,INK,820);ul(y+82,640);}
 
-        fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        })
-        .then(res => {
-            if (!res.ok) throw new Error('HTTP status ' + res.status);
-            return res.json();
-        })
-        .then(data => {
-            if(data.status === 'success') {
-                alert('🎉 สำเร็จ! บันทึกข้อมูลส่งรายงานเข้าฐานข้อมูลเครื่อง NAS เรียบร้อยแล้ว');
-                document.getElementById('reportForm').reset();
-            } else {
-                alert('❌ ปัญหาจากฝั่ง NAS: ' + data.message);
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('❌ ไม่สามารถเชื่อมต่อฐานข้อมูลเครื่อง NAS ได้\n\n[ตรวจสอบพิกัดปลายทางที่ยิงไปตอนนี้]\n🔗 URL: ' + targetUrl + '\n\n💡 วิธีแก้: ถ้าข้อความด้านบนเป็น 223.27.212.187 แล้ว แปลว่าโค้ดใหม่ทำงานแล้ว ให้ไปตรวจสอบการทำ Port Forwarding ที่เร้าเตอร์หลักเปิดพอร์ตเว็บ (พอร์ต 80) ชี้ไปที่ไอพีภายในของ NAS หรือยังครับ');
-        })
-        .finally(() => {
-            submitBtn.disabled = false;
-            submitBtn.innerText = 'ส่งข้อมูลเข้าฐานข้อมูล NAS';
-        });
-    });
+function rose(x,y,r,s){const c=['#f4a3b5','#f7b9c6','#ee8fa6','#fbd0d9'];ctx.save();ctx.translate(x,y);ctx.rotate(s);ctx.fillStyle='#4f8a4f';for(let k=0;k<3;k++){ctx.rotate(2.1);ctx.beginPath();ctx.ellipse(r*.9,0,r*.55,r*.25,0,0,7);ctx.fill();}
+ for(let i=0;i<5;i++){ctx.fillStyle=c[i%4];ctx.strokeStyle='#d9728d';ctx.lineWidth=1.3;for(let k=0;k<5;k++){const a=k*1.2566+i*.5,d=r*(.5-i*.08);ctx.beginPath();ctx.arc(Math.cos(a)*d,Math.sin(a)*d,r*(.55-i*.09),0,7);ctx.fill();ctx.stroke();}}ctx.restore();}
+function roseFrame(W,H){ctx.fillStyle='#f9e4ea';ctx.fillRect(48,48,W-96,H-96);ctx.fillStyle='#fffaf0';ctx.fillRect(112,112,W-224,H-224);
+ ctx.strokeStyle=NAVY;ctx.lineWidth=6;ctx.strokeRect(48,48,W-96,H-96);ctx.lineWidth=4;ctx.strokeRect(112,112,W-224,H-224);ctx.strokeStyle=GOLD;ctx.lineWidth=2;ctx.strokeRect(120,120,W-240,H-240);
+ let n=0;const sx=(W-160)/17,sy=(H-160)/24;for(let i=0;i<=17;i++){rose(80+i*sx,80,29,n++);rose(80+i*sx,H-80,29,n++);}for(let j=1;j<24;j++){rose(80,80+j*sy,29,n++);rose(W-80,80+j*sy,29,n++);}}
+function sig(x,role,name){ctx.strokeStyle='#8a7655';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(x-150,1480);ctx.lineTo(x+150,1480);ctx.stroke();
+  ctx.textAlign='center';ctx.font='400 28px '+SANS;ctx.fillStyle=MUT;ctx.fillText(role,x,1516);
+  ctx.font='500 28px '+SANS;ctx.fillStyle=INK;let t='('+(name||DOTS)+')',f=28;while(ctx.measureText(t).width>320&&f>18){f-=2;ctx.font='500 '+f+'px '+SANS;}ctx.fillText(t,x,1552);}
+
+function draw(label){
+  const W=1240,H=1754;
+  ctx.fillStyle='#fbf5e6';ctx.fillRect(0,0,W,H);
+  roseFrame(W,H);
+  // header
+  if(label)T(label,165,'600 26px '+SANS,NAVY);
+  orn(215,260);
+  T('ใบทะเบียนสมรส',325,'500 96px Mitr,'+SANS,NAVY);
+  T('(ฉบับที่ระลึก)',388,'600 38px '+SANS,INK);
+  T('เลขที่ '+TD($('no').value||'-'),438,'400 28px '+SANS,MUT);
+  orn(485,380);
+  // parties
+  T('ทะเบียนสมรสนี้ทำขึ้นเพื่อแสดงว่า',555,'500 32px '+SANS,MUT);
+  field('ฝ่ายชาย',$('gName').value||DOTS,625);
+  T($('gAge').value?'อายุ '+TD($('gAge').value)+' ปี':'',745,'500 32px '+SANS,MUT);
+  orn(805,200);
+  field('ฝ่ายหญิง',$('bName').value||DOTS,860);
+  T($('bAge').value?'อายุ '+TD($('bAge').value)+' ปี':'',980,'500 32px '+SANS,MUT);
+  // statement
+  T('ได้ตกลงเป็นสามีภริยากัน ด้วยความยินยอมพร้อมใจ',1060,'500 34px '+SANS,INK,860);
+  T('ต่อหน้าพยานและญาติมิตร',1105,'500 34px '+SANS,INK);
+  orn(1150,380);
+  // date & place
+  field('เมื่อวันที่',thaiDate($('date').value),1195,42);
+  field('ณ',$('place').value||DOTS,1315,42);
+  const w=[$('w1').value,$('w2').value].filter(Boolean);
+  if(w.length)T('พยาน: '+w.join('  ,  '),1418,'400 26px '+SANS,MUT,760);
+  // signatures + seal (centered)
+  sig(330,'สามี',$('gName').value);sig(910,'ภริยา',$('bName').value);
+  ctx.save();ctx.translate(CX,1465);ctx.globalAlpha=.9;ctx.strokeStyle='#b3261e';ctx.fillStyle='#b3261e';ctx.lineWidth=5;
+  ctx.beginPath();ctx.arc(0,0,52,0,7);ctx.stroke();ctx.lineWidth=2;ctx.beginPath();ctx.arc(0,0,43,0,7);ctx.stroke();
+  ctx.textAlign='center';ctx.font='700 22px '+SANS;ctx.fillText('ที่ระลึก',0,-2);ctx.font='600 14px '+SANS;ctx.fillText('ไม่ใช่เอกสารราชการ',0,20);ctx.restore();
+  // disclaimer
+  ctx.fillStyle='rgba(154,107,31,.12)';ctx.fillRect(160,1588,W-320,42);
+  T('เอกสารที่ระลึกเพื่อความสวยงามเท่านั้น ไม่ใช่เอกสารราชการ และไม่มีผลทางกฎหมาย',1617,'600 24px '+SANS,'#7a5514',W-360);
+}
+const pg=document.createElement('canvas');pg.width=1240;pg.height=1754;
+function render(){
+  const two=document.querySelector('input[name=mode]:checked').value==='2';const c2=cv.getContext('2d');
+  if(!two){cv.width=1240;cv.height=1754;ctx=cv.getContext('2d');draw();return;}
+  const a=document.createElement('canvas');a.width=1240;a.height=1754;
+  ctx=pg.getContext('2d');draw('ฉบับของฝ่ายชาย');a.getContext('2d').drawImage(pg,0,0);
+  draw('ฉบับของฝ่ายหญิง');
+  cv.width=2480;cv.height=1754;ctx=cv.getContext('2d');ctx.fillStyle='#e3d9c6';ctx.fillRect(0,0,2480,1754);
+  ctx.drawImage(a,0,0);ctx.drawImage(pg,1240,0);ctx.fillStyle='rgba(60,40,10,.18)';ctx.fillRect(1236,0,8,1754);
+}
+
+async function init(){try{await Promise.all([document.fonts.load('500 40px Sarabun'),document.fonts.load('600 40px Sarabun'),document.fonts.load('500 40px Mitr')]);}catch(e){}render();}
+init();document.querySelectorAll('input').forEach(i=>i.addEventListener('input',render));
+
+const msg=t=>$('msg').textContent=t;
+async function save(filename,data){
+  let dl=null;try{dl=await claude.use('downloads');}catch(e){}
+  if(!dl){msg('ฟีเจอร์ดาวน์โหลดไม่พร้อมใช้งานในมุมมองนี้ ลองเปิดหน้านี้ใน claude.ai');return;}
+  try{await dl.save({filename,data});msg('บันทึกไฟล์แล้ว');}catch(e){msg(e&&e.code==='declined'?'ยกเลิกการบันทึก':'บันทึกไม่สำเร็จ ('+(e&&e.code||'error')+')');}
+}
+const fname=()=>'ใบทะเบียนสมรสที่ระลึก';
+$('png').onclick=()=>{render();cv.toBlob(b=>save(fname()+'.png',b),'image/png');};
+$('pdf').onclick=()=>{render();try{const {jsPDF}=window.jspdf;const two=cv.width>1300;const p=new jsPDF({unit:'mm',format:'a4',orientation:two?'landscape':'portrait'});
+  p.addImage(cv.toDataURL('image/jpeg',0.95),'JPEG',0,0,two?297:210,two?210:297);save(fname()+'.pdf',p.output('blob'));}catch(e){msg('สร้าง PDF ไม่สำเร็จ');}};
 </script>
 </body>
 </html>
